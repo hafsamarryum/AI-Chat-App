@@ -1,4 +1,20 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply h-full;
+  }
+  
+  body {
+    @apply h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
+  }
+
+  #__next {
+    @apply h-full;
+  }
+}
 
 html {
   scroll-behavior: smooth;
@@ -10,10 +26,10 @@ body {
 
 /* ✅ Hide scrollbar but allow scrolling */
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

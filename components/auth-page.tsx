@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-client";
 import { useChatStore } from "@/lib/store";
-import { useTheme } from "@/app/context/ThemeProvider";
+import { useTheme } from "@/lib/useTheme";
 import { Moon, Sun } from "lucide-react";
 
 export function AuthPage() {
