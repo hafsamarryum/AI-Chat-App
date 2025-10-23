@@ -7,24 +7,27 @@ interface User {
   email: string
 }
 
-interface Message {
-  id: string
-  content: string
-  role: 'user' | 'assistant'
-  model: string
-  createdAt: Date
+export type MessageRole = "user" | "assistant";
+
+export interface Message {
+  id: string;
+  content: string;
+  role: MessageRole;
+  model?: string;
+  createdAt: Date;
+  userId?: string; // optional
 }
 
 interface ChatStore {
-  user: User | null
-  setUser: (user: User | null) => void
-  messages: Message[]
-  setMessages: (messages: Message[]) => void
-  addMessage: (message: Message) => void
-  selectedModel: string
-  setSelectedModel: (model: string) => void
-  isLoading: boolean
-  setIsLoading: (loading: boolean) => void
+  user: User | null;
+  setUser: (user: User | null) => void;
+  messages: Message[];
+  setMessages: (messages: Message[] | ((msgs: Message[]) => Message[])) => void;
+  addMessage: (message: Message) => void;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -33,8 +36,15 @@ export const useChatStore = create<ChatStore>()(
       user: null,
       setUser: (user) => set({ user }),
       messages: [],
-      setMessages: (messages) => set({ messages }),
-      addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+      setMessages: (updater) =>
+        set((state) => ({
+          messages:
+            typeof updater === "function"
+              ? updater(state.messages)
+              : updater,
+        })),
+      addMessage: (message) =>
+        set((state) => ({ messages: [...state.messages, message] })),
       selectedModel: "gpt-3.5-turbo",
       setSelectedModel: (model) => set({ selectedModel: model }),
       isLoading: false,
@@ -47,6 +57,6 @@ export const useChatStore = create<ChatStore>()(
         messages: state.messages,
         selectedModel: state.selectedModel,
       }),
-    },
-  ),
-)
+    }
+  )
+);
