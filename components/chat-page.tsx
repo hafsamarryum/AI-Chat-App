@@ -5,18 +5,14 @@ import { useState, useRef, useEffect } from 'react'
 import { useChatStore } from '@/lib/store'
 import { MessageBubble } from './message-bubble'
 import { trpc } from '@/lib/trpc-client'
-// import { Button } from '@/components/ui/button'
-// import { Input } from '@/components/ui/input'
-// import { Card } from '@/components/ui/card'
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-// import { MessageBubble } from '@/components/message-bubble'
 import { Moon, Sun } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 
 export function ChatPage() {
   const { user, messages, addMessage, selectedModel, setSelectedModel, isLoading, setIsLoading } = useChatStore()
   const [input, setInput] = useState('')
-  const [darkMode, setDarkMode] = useState(false)
+  // const [darkMode, setDarkMode] = useState(false)
+  const { theme, toggleTheme } = useTheme()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
