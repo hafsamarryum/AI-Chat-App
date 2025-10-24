@@ -3,11 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "@/lib/store";
 import { MessageBubble } from "./message-bubble";
 import { trpc } from "@/lib/trpc-client";
-import { Moon, Sun, Pencil, Trash2 } from "lucide-react";
+import { Moon, Sun, Pencil, Trash2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase-client";
 import { useTheme } from "@/lib/useTheme";
 import type { Message } from "@/lib/store";
-
 export function ChatPage() {
   const {
     user,
@@ -22,6 +21,8 @@ export function ChatPage() {
   
   const [input, setInput] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [updatingMessageId, setUpdatingMessageId] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -29,12 +30,12 @@ export function ChatPage() {
   const { data: models } = trpc.models.getAvailable.useQuery();
   const sendMessageMutation = trpc.chat.send.useMutation();
   
-  // ✅ Auto-scroll when messages change
+  // Auto-scroll when messages change
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(scrollToBottom, [messages]);
   
-  // ✅ Fetch messages + assistant responses
+  //  Fetch messages + assistant responses
   useEffect(() => {
     const fetchMessages = async () => {
       if (!user) return;
@@ -167,15 +168,17 @@ export function ChatPage() {
       };
       addMessage(assistantMessage);
     } catch (err) {
-      console.error("❌ Error sending message:", err);
+      console.error("Error sending message:", err);
     } finally {
       setIsLoading(false);
     }
   };
   
-  // ✅ Edit message
+  //  Edit message
   const handleEditMessage = async () => {
     if (!editingMessageId || !input.trim()) return;
+    
+    setUpdatingMessageId(editingMessageId);
     
     const { error } = await supabase
       .from("user_messages")
@@ -191,14 +194,28 @@ export function ChatPage() {
       setEditingMessageId(null);
       setInput("");
     }
+    
+    setUpdatingMessageId(null);
   };
   
-  // ✅ Delete user message + assistant response
+  // Handle submit (Send or Edit)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingMessageId) {
+      await handleEditMessage();
+    } else {
+      await handleSendMessage(e);
+    }
+  };
+  
+  //  Delete user message + assistant response
   const handleDeleteMessage = async (messageId: string) => {
     if (!user) return;
     
+    setDeletingMessageId(messageId);
+    
     try {
-      // 1️⃣ Find assistant response(s)
+      // 1 Find assistant response(s)
       const { data: responses, error: fetchError } = await supabase
         .from("assistant_responses")
         .select("id")
@@ -207,7 +224,7 @@ export function ChatPage() {
         
       if (fetchError) throw fetchError;
       
-      // 2️⃣ Delete assistant response(s)
+      // 2 Delete assistant response(s)
       if (responses && responses.length > 0) {
         const { error: deleteResError } = await supabase
           .from("assistant_responses")
@@ -219,7 +236,7 @@ export function ChatPage() {
         if (deleteResError) throw deleteResError;
       }
       
-      // 3️⃣ Delete the user message itself
+      // 3 Delete the user message itself
       const { error: deleteMsgError } = await supabase
         .from("user_messages")
         .delete()
@@ -238,6 +255,8 @@ export function ChatPage() {
       );
     } catch (err) {
       console.error("Error deleting message:", err);
+    } finally {
+      setDeletingMessageId(null);
     }
   };
   
@@ -292,7 +311,7 @@ export function ChatPage() {
               timestamp={msg.createdAt}
               model={msg.role === "assistant" ? msg.model : undefined}
             />
-            {/* ✅ Edit/Delete only for user's own message */}
+            {/* Edit/Delete only for user's own message */}
             {msg.role === "user" && msg.userId === user?.id && (
               <div className="flex justify-end gap-3 mt-0 ml-12">
                 <button
@@ -300,15 +319,27 @@ export function ChatPage() {
                     setEditingMessageId(msg.id);
                     setInput(msg.content);
                   }}
-                  className="flex items-center gap-1 text-yellow-600 hover:underline"
+                  disabled={updatingMessageId === msg.id}
+                  className="flex items-center gap-1 text-yellow-600 hover:underline disabled:opacity-50"
                 >
-                  <Pencil size={14} /> Edit
+                  {updatingMessageId === msg.id ? (
+                    <Loader2 size={14} className="animate-spin text-green-600" />
+                  ) : (
+                    <Pencil size={14} />
+                  )}
+                  Edit
                 </button>
                 <button
                   onClick={() => handleDeleteMessage(msg.id)}
-                  className="flex items-center gap-1 text-red-600 hover:underline"
+                  disabled={deletingMessageId === msg.id}
+                  className="flex items-center gap-1 text-red-600 hover:underline disabled:opacity-50"
                 >
-                  <Trash2 size={14} /> Delete
+                  {deletingMessageId === msg.id ? (
+                    <Loader2 size={14} className="animate-spin text-red-600" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                  Delete
                 </button>
               </div>
             )}
@@ -336,7 +367,7 @@ export function ChatPage() {
       
       {/* Input */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800">
-        <form onSubmit={editingMessageId ? handleEditMessage : handleSendMessage}>
+        <form onSubmit={handleSubmit}>
           <div className="flex gap-2">
             <input
               type="text"
@@ -346,11 +377,17 @@ export function ChatPage() {
               className="flex-1 px-4 py-2 rounded-lg border dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
             {editingMessageId ? (
-              <button className="bg-yellow-500 text-white px-4 rounded hover:bg-yellow-600 transition">
+              <button 
+                type="submit"
+                className="bg-yellow-500 text-white px-4 rounded hover:bg-yellow-600 transition"
+              >
                 Save
               </button>
             ) : (
-              <button className="bg-blue-500 text-white px-4 rounded hover:bg-blue-600 transition">
+              <button 
+                type="submit"
+                className="bg-blue-500 text-white px-4 rounded hover:bg-blue-600 transition"
+              >
                 Send
               </button>
             )}

@@ -24,7 +24,7 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* ✅ Hide scrollbar but allow scrolling */
+/*  Hide scrollbar but allow scrolling */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

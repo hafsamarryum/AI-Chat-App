@@ -1,6 +1,5 @@
 import { initTRPC } from "@trpc/server";
 import { ZodError } from "zod";
-// import { checkSupabaseConnection } from "@/lib/db-health";
 
 const t = initTRPC.create({
   errorFormatter({ shape, error }) {

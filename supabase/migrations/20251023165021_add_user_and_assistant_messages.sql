@@ -30,28 +30,16 @@ CREATE POLICY "Users can insert their own messages"
   ON public.user_messages FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update or delete their own last message"
-  ON public.user_messages FOR UPDATE USING (
-    auth.uid() = user_id
-    AND id = (
-      SELECT id FROM public.user_messages
-      WHERE user_id = auth.uid()
-      ORDER BY created_at DESC
-      LIMIT 1
-    )
-  )
+-- ✅ UPDATED: Allow users to update ANY of their own messages (not just the last one)
+CREATE POLICY "Users can update their own messages"
+  ON public.user_messages FOR UPDATE 
+  USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own last message"
-  ON public.user_messages FOR DELETE USING (
-    auth.uid() = user_id
-    AND id = (
-      SELECT id FROM public.user_messages
-      WHERE user_id = auth.uid()
-      ORDER BY created_at DESC
-      LIMIT 1
-    )
-  );
+-- ✅ UPDATED: Allow users to delete ANY of their own messages (not just the last one)
+CREATE POLICY "Users can delete their own messages"
+  ON public.user_messages FOR DELETE 
+  USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can view their own responses"
   ON public.assistant_responses FOR SELECT

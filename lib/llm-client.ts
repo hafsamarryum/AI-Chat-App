@@ -1,5 +1,4 @@
 export async function callLLM(prompt: string, model: string): Promise<string> {
-  console.log("[v0] callLLM called with prompt:", prompt, "model:", model)
 
   // If OpenAI API key is available, use real API
   if (process.env.OPENAI_API_KEY) {
@@ -20,20 +19,19 @@ export async function callLLM(prompt: string, model: string): Promise<string> {
 
       if (!response.ok) {
         const error = await response.json()
-        console.error("[v0] OpenAI API error:", error)
+        console.error("OpenAI API error:", error)
         throw new Error("OpenAI API error")
       }
 
       const data = await response.json()
-      console.log("[v0] OpenAI response received")
       return data.choices[0].message.content
     } catch (error) {
-      console.error("[v0] OpenAI API error:", error)
+      console.error("OpenAI API error:", error)
       // Fall back to stub
     }
   }
 
   // Stub response
-  console.log("[v0] Using stub response")
-  return `I'm a stub AI assistant. You said: "${prompt}". To enable real responses, add your OpenAI API key to .env.local`
+    return `I am AI assistant."You said: "${prompt}". Since no API key is configured, the system is returning this fallback message. Please set up your OpenAI API key to get real responses."`
+
 }

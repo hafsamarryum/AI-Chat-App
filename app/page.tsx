@@ -20,7 +20,6 @@ export default function Home() {
         const {
           data: { user: authUser },
         } = await supabase.auth.getUser()
-        console.log("Auth user:", authUser)
         if (authUser) {
           setUser({
             id: authUser.id,
