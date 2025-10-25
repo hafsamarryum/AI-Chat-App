@@ -199,6 +199,14 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## List any stretch you tackled
+
+While implementing Theme mode switching (Dark, Light), I struggled a bit figuring out the exact issue,
+as per documentation and search my code seemed perfect but it wasn't reflecting the desired changes.
+Also wasn't throwing any proper error.
+So, after some hours of debugging and searching I found out the issue was regarding Next.js version conflicting with tailwind. Degrading from latest version worked for me.
+
+
 ## License
 
 MIT
